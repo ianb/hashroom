@@ -1,2 +1,3 @@
-# hashroom
+# Hashroom
+
 An experiment in sharing browsing activity

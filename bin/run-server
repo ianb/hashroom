@@ -1,0 +1,64 @@
+#!/bin/bash
+
+set -e
+cd "$(dirname ${BASH_SOURCE[0]})/.."
+base="$(pwd)"
+export PATH="$base/node_modules/.bin:$PATH"
+no_auto=
+restart=
+
+_cleanup () {
+  if [[ -n "$nodemon_pid" ]] ; then
+    # Seems to usually be dead by this point?  Good I guess?
+    kill $nodemon_pid >& /dev/null || true
+  fi
+}
+
+trap _cleanup EXIT
+
+help () {
+  echo "Usage: $(basename $0) [OPTIONS]"
+  echo "Runs a server on http://localhost:10001/"
+  echo "  Options:"
+  echo "    --no-auto"
+  echo "      Do not watch for changes in the addon"
+}
+
+while [ -n "$1" ] ; do
+  case "$1" in
+    help|-h|--help)
+      help
+      exit
+      ;;
+    --no-auto)
+      no_auto=1
+      shift
+      ;;
+    --restart)
+      # Hidden option for use by nodemon
+      restart=1
+      no_auto=1
+      shift
+      ;;
+    *)
+      help
+      exit 2
+      ;;
+  esac
+done
+
+run() {
+  make html
+  cd $base/built/html
+  http-server -p 10001 -d
+}
+
+if [[ -z "$no_auto" ]] ; then
+  nodemon \
+    -w html \
+    -w Makefile \
+    --exec bash $0 -- --restart
+  nodemon_pid=$!h
+else
+  run
+fi

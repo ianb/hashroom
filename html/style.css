@@ -1,0 +1,56 @@
+body {
+  font-family: sans-serif;
+}
+
+.page-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.page {
+  border: 2px solid #444;
+  border-radius: 5px;
+  width: 200px;
+  margin: 10px;
+}
+
+.page h3 {
+  margin: 0;
+}
+
+.page h3 a {
+  text-decoration: none;
+  color: #000;
+}
+
+.header {
+  background-color: #ddd;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.link {
+  float: right;
+  font-size: 90%;
+}
+
+.link a {
+  text-decoration: none;
+}
+
+.page.unpinned .favorite::before {
+  content: "\2606"
+}
+
+.page.pinned .favorite::before {
+  content: "\2605"
+}
+
+.page .favorite {
+  cursor: pointer;
+}
+
+.main-image {
+  max-width: 200px;
+}

@@ -1,0 +1,17 @@
+{
+  "name": "hashroom",
+  "description": "An experiment in sharable discussable web content",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ianb/hashroom"
+  },
+  "license": "MPL",
+  "version": "0.0.1",
+  "dependencies": {
+    "babel-cli": "6.5.1",
+    "babel-plugin-transform-react-jsx": "6.5.2",
+    "http-server": "0.8.5",
+    "jpm": "1.0.5",
+    "nodemon": "1.8.1"
+  }
+}

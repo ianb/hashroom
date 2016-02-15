@@ -1,0 +1,25 @@
+{
+  "title": "Hashroom",
+  "name": "hashroom",
+  "id": "Eim0oucoeeyeiz1K@hashroom",
+  "version": "0.0.1",
+  "description": "Experimental sharing tool",
+  "main": "index.js",
+  "author": "Ian Bicking",
+  "engines": {
+    "firefox": ">=38.0a1"
+  },
+  "license": "MPL",
+  "keywords": [
+    "jetpack"
+  ],
+  "preferences": [
+    {
+      "name": "server",
+      "title": "server URL",
+      "description": "URL where rooms are stored (restart required when changing)",
+      "type": "string",
+      "value": "https://ianb.github.io/hashroom/"
+    }
+  ]
+}

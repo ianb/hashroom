@@ -1,0 +1,97 @@
+#!/bin/bash
+
+set -e
+cd "$(dirname ${BASH_SOURCE[0]})/.."
+base="$(pwd)"
+export PATH="$base/node_modules/.bin:$PATH"
+
+nodemon_pid=
+no_auto=
+binary=nightly
+upload=
+scratch=
+
+_cleanup () {
+  if [[ -n "$nodemon_pid" ]] ; then
+    # Seems to usually be dead by this point?  Good I guess?
+    kill $nodemon_pid >& /dev/null || true
+  fi
+}
+
+trap _cleanup EXIT
+
+help () {
+  echo "Usage: $(basename $0) [OPTIONS]"
+  echo "  Options:"
+  echo "    --no-auto"
+  echo "      Do not watch for changes in the addon"
+  echo "    -b or --binary BINARY"
+  echo "      Use BINARY as the Firefox to run"
+  echo "    --scratch"
+  echo "      Use a scratch profile"
+}
+
+while [[ -n "$1" ]] ; do
+  case "$1" in
+    help|-h|--help)
+      help
+      exit
+      ;;
+    --no-auto)
+      no_auto=1
+      shift
+      ;;
+    -b|--binary)
+      binary="$2"
+      shift
+      shift
+      ;;
+    --upload)
+      # Note: --upload is a hidden option used when nodemon triggers a restart
+      upload=1
+      shift
+      ;;
+    --scratch)
+      scratch=1
+      shift
+      ;;
+    *)
+      help
+      exit 2
+      ;;
+  esac
+done
+
+if [[ -n "$upload" ]] ; then
+  make addon xpi
+  echo "Uploading to the browser"
+  echo "  (if this fails, install: https://addons.mozilla.org/en-US/firefox/addo
+n/autoinstaller/)"
+  # Doesn't return any content, leads to an unnecessary error:
+  wget --post-file=built/addon/Eim0oucoeeyeiz1K@hashroom-0.0.1.xpi http://localhost:8888 || echo "no
+content"
+  exit
+fi
+
+make addon
+
+if [[ -z "$no_auto" ]] ; then
+  nodemon \
+    -w addon/ \
+    -w Makefile \
+    --on-change-only \
+    --exec bash $0 -- --upload &
+  nodemon_pid=$!h
+fi
+
+cd built/addon/
+profile_option=
+if [[ -z "$scratch" ]] ; then
+  mkdir -p ../../Profile
+  profile_option="--profile ../../Profile"
+fi
+binary_option=
+if [[ -n "$binary" ]] ; then
+  binary_option="--binary $binary"
+fi
+jpm run $binary_option $profile_option --no-copy --prefs $base/.dev-prefs.json
