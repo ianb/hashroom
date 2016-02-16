@@ -1,3 +1,4 @@
-node_modules
-built
-Profile
+/node_modules
+/built
+/Profile
+/gh-pages
