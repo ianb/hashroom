@@ -34,6 +34,10 @@ function getData() {
   let bestWidth = 0;
   for (let i=0; i<els.length; i++) {
     let el = els[i];
+    if (! isVisible(el)) {
+      console.log("skipping image", el.src);
+      continue;
+    }
     if (el.width < MIN_IMAGE_WIDTH || el.height < MIN_IMAGE_HEIGHT) {
       continue;
     }
@@ -46,6 +50,22 @@ function getData() {
   props.openGraph = getOpenGraph();
   props.twitterCard = getTwitterCard();
   return props;
+}
+
+function isVisible(element) {
+  while (element && element.tagName != "BODY") {
+    let style;
+    try {
+      style = content.getComputedStyle(element);
+    } catch (e) {
+      console.log("bad element:", element, e+"");
+    }
+    if (style && style.display == "none") {
+      return false;
+    }
+    element = element.parentNode;
+  }
+  return true;
 }
 
 function packImage(element) {
