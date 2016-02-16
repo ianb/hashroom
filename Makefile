@@ -36,9 +36,8 @@ built/html/%: html/%
 .PHONY: xpi
 xpi: built/addon/Eim0oucoeeyeiz1K@hashroom-0.0.1.xpi
 
-built/addon/Eim0oucoeeyeiz1K@hashroom-0.0.1.xpi: $(addon_js_sources) $(addon-static_sources)
-	cd built/addon/
-	$(JPM) xpi
+built/addon/Eim0oucoeeyeiz1K@hashroom-0.0.1.xpi: $(addon_js_dests) $(addon-static_dests)
+	cd built/addon/ ; $(JPM) xpi
 
 .PHONY: addon
 addon: npm $(addon_js_dests) $(addon_static_dests)
