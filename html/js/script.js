@@ -1,6 +1,8 @@
+/* jshint browser:true */
+/* globals React, ReactDOM, Firebase, addMessageListener */
 "use strict";
 var firebase = new Firebase('https://blistering-inferno-6839.firebaseio.com/room/test');
-
+var displayName;
 var data = {pages: {}};
 
 class PageList extends React.Component {
@@ -177,14 +179,14 @@ function render() {
   let page = <div>
     {list}
     {displayName ? null : <DisplayNameQuery />}
-  </div>
+  </div>;
   ReactDOM.render(
     page,
     document.getElementById("container")
   );
 }
 
-let displayName = localStorage.getItem("displayName");
+displayName = localStorage.getItem("displayName");
 
 
 function renderSoon() {
