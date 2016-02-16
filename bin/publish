@@ -5,7 +5,7 @@ cd "$(dirname ${BASH_SOURCE[0]})/.."
 base="$(pwd)"
 export PATH="$base/node_modules/.bin:$PATH"
 
-make html
+make html html_xpi
 
 if [[ ! -d ./gh-pages ]] ; then
   echo "Cloning gh-pages branch into ./gh-pages/ ..."

@@ -36,6 +36,13 @@ built/html/%: html/%
 .PHONY: xpi
 xpi: built/addon/Eim0oucoeeyeiz1K@hashroom-0.0.1.xpi
 
+.PHONY: html_xpi
+html_xpi: built/html/hashroom-0.0.1.xpi
+
+built/html/hashroom-0.0.1.xpi: built/addon/Eim0oucoeeyeiz1K@hashroom-0.0.1.xpi
+	@mkdir -p $(@D)
+	cp $< $@
+
 built/addon/Eim0oucoeeyeiz1K@hashroom-0.0.1.xpi: $(addon_js_dests) $(addon-static_dests)
 	cd built/addon/ ; $(JPM) xpi
 
