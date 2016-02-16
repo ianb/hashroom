@@ -1,3 +1,4 @@
+/* globals content */
 var blockStyles = ["block", "table-cell"];
 
 function startSelection() {
@@ -53,11 +54,12 @@ function startSelection() {
       canvas.width = rect.width;
       canvas.height = rect.height;
       let ctx = canvas.getContext('2d');
-      console.log("clipping range:", {left: rect.left, top: rect.top, width: rect.width, height: rect.height});
       ctx.drawWindow(content, rect.left, rect.top, rect.width, rect.height, "#000");
       finish({
         src: canvas.toDataURL(),
-        text: hoverOverEl.innerText
+        text: hoverOverEl.innerText,
+        width: rect.width,
+        height: rect.height
       });
       return false;
     }

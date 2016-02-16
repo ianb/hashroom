@@ -5,7 +5,9 @@ const { setTimeout } = require("sdk/timers");
 const { ActionButton } = require("sdk/ui/button/action");
 const { callScript } = require("./framescripter");
 const { prefs } = require('sdk/simple-prefs');
-Cu.import("resource://gre/modules/RemotePageManager.jsm");
+let importer = {};
+Cu.import("resource://gre/modules/RemotePageManager.jsm", importer);
+const { RemotePages } = importer;
 
 var ROOM_URL = prefs.server;
 if (! ROOM_URL.endsWith("/")) {
@@ -60,6 +62,22 @@ function clipPage(tab) {
 listener.addMessageListener("RemotePage:Load", function ({target}) {
   console.log("New remote page loaded");
   target.sendAsyncMessage("UpdateAllPages", data);
+});
+
+listener.addMessageListener("UpdatePage", function (event) {
+  let pageId = event.data.id;
+  let attrs = event.data.attrs;
+  if (attrs) {
+    let page = data.pages[pageId];
+    if (! page) {
+      page = data.pages[pageId] = {pageId};
+    }
+    for (let key in attrs) {
+      page[key] = attrs[key];
+    }
+  } else {
+    delete data.pages[pageId];
+  }
 });
 
 function resync(pageId, attrs) {
