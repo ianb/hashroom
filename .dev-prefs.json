@@ -1,3 +1,5 @@
 {
-  "extensions.Eim0oucoeeyeiz1K@hashroom.server": "http://localhost:10001"
+  "extensions.Eim0oucoeeyeiz1K@hashroom.server": "http://localhost:10001",
+  "xpinstall.signatures.required": false,
+  "extensions.Eim0oucoeeyeiz1K@hashroom.sdk.console.logLevel": "all"
 }
