@@ -1,8 +1,9 @@
 /* jshint browser:true */
-/* globals React, ReactDOM, Firebase, addMessageListener */
+/* globals React, ReactDOM, Firebase, addMessageListener, sendAsyncMessage */
 "use strict";var _extends = Object.assign || function (target) {for (var i = 1; i < arguments.length; i++) {var source = arguments[i];for (var key in source) {if (Object.prototype.hasOwnProperty.call(source, key)) {target[key] = source[key];}}}return target;};
 var firebase = new Firebase('https://blistering-inferno-6839.firebaseio.com/room/test');
 var displayName;
+var zoomClip;
 var data = { pages: {} };
 
 class PageList extends React.Component {
@@ -25,7 +26,7 @@ class PageList extends React.Component {
     React.createElement("h1", null, "Pages:"), 
     React.createElement("div", { className: "page-list" }, 
     pageEls, 
-    React.createElement("pre", null, JSON.stringify(this.props.data, null, "  "))));}}
+    pageEls.length ? null : React.createElement("div", null, "This room is empty")));}}
 
 
 
@@ -37,7 +38,7 @@ class Page extends React.Component {
   render() {
     let clips = [];
     for (let clip of this.props.clips || []) {
-      clips.push(React.createElement("img", { src: clip.src, title: clip.text, key: clip.src, className: "main-image" }));}
+      clips.push(React.createElement(ClipThumb, { clip: clip, pageId: this.props.pageId, key: clip.src }));}
 
     let className = "page " + (this.props.pinned ? "pinned" : "unpinned");
     return React.createElement("div", { className: className, key: this.props.pageId }, 
@@ -70,6 +71,56 @@ class Page extends React.Component {
     domain = domain.split("/")[0];
     domain = domain.replace(/^www\./i, "");
     return domain;}}
+
+
+
+
+class ClipThumb extends React.Component {
+
+  render() {
+    return React.createElement("img", { src: this.props.clip.src, title: this.props.clip.text, key: this.props.clip.src, className: "main-image", onClick: this.onExpand.bind(this) });}
+
+
+  onExpand() {
+    zoomClip = { clip: this.props.clip, pageId: this.props.pageId };
+    renderSoon();}}
+
+
+
+
+class ZoomClip extends React.Component {
+
+  render() {
+    let width = Math.min(window.innerWidth - 200, 800);
+    let height = window.innerHeight - 200;
+    if (this.props.clip.height) {
+      height = Math.min(height, this.props.clip.height + 100);}
+
+    return React.createElement(Lightbox, { width: width, height: height, onBackgroundClick: this.onClose.bind(this) }, 
+    React.createElement("div", { style: { backgroundColor: "#fff", minHeight: height } }, 
+    React.createElement("img", { src: this.props.clip.src, onClick: this.onClose.bind(this), style: { cursor: "zoom-out", width: "100%", height: "auto", maxHeight: height - 50 + "px" } }), 
+    React.createElement("button", { onClick: this.onClose.bind(this) }, "close"), 
+    React.createElement("button", { onClick: this.onDelete.bind(this) }, React.createElement("img", { src: "./trash.svg", style: { width: "1em", height: "1em" } }))));}
+
+
+
+
+  onClose() {
+    zoomClip = null;
+    renderSoon();}
+
+
+  onDelete() {
+    let clips = data.pages[this.props.pageId].clips;
+    clips = clips.filter(clip => {
+      console.log("checking clip", clip.src == this.props.clip.src, clip.src.length, this.props.clip.src.length);
+      if (clip.src == this.props.clip.src) {
+        return false;}
+
+      return true;});
+
+    zoomClip = null;
+    updatePage(this.props.pageId, { clips: clips });}}
 
 
 
@@ -121,10 +172,15 @@ class Lightbox extends React.Component {
     let height = parseInt(this.props.height, 10);
     let opacity = this.props.opacity || "0.5";
     let shade = this.props.shade || "#000";
-    function makeStyle(props) {
-      props.position = "fixed";
-      props.backgroundColor = shade;
-      props.opacity = opacity;
+    function makeStyle(input) {
+      let props = { 
+        position: "fixed", 
+        backgroundColor: shade, 
+        opacity: opacity };
+
+      for (let key in input) {
+        props[key] = input[key];}
+
       return props;}
 
     let barHeight = (window.innerHeight - height) / 2;
@@ -187,7 +243,8 @@ function render() {
   let list = React.createElement(PageList, data);
   let page = React.createElement("div", null, 
   list, 
-  displayName ? null : React.createElement(DisplayNameQuery, null));
+  displayName ? null : React.createElement(DisplayNameQuery, null), 
+  zoomClip ? React.createElement(ZoomClip, { clip: zoomClip.clip, pageId: zoomClip.pageId }) : null);
 
   ReactDOM.render(
   page, 
@@ -202,7 +259,7 @@ function renderSoon() {
   setTimeout(render);}
 
 
-function updatePage(id, attrs, fromRemote) {
+function updatePage(id, attrs, source) {
   if (!attrs) {
     delete data.pages[id];} else 
   if (!data.pages[id]) {
@@ -215,39 +272,40 @@ function updatePage(id, attrs, fromRemote) {
       data.pages[id][attr] = attrs[attr];}}
 
 
-  if (!fromRemote) {
-    console.log("sending data:", id, attrs);
+  if (source != "firebase") {
+    console.log("sending data to Firebase:", id, attrs);
     let childPage = firebase.child(id);
     if (!attrs) {
       childPage.set(null);} else 
     {
-      childPage.update(attrs);}} else 
+      childPage.update(attrs);}}
 
-  {
-    console.log("received data:", id, attrs);}
+
+  if (source != "addon") {
+    sendAsyncMessage("UpdatePage", { id: id, attrs: attrs });}
 
   renderSoon();}
 
 
 firebase.on("child_added", function (snapshot) {
   let page = snapshot.val();
-  updatePage(page.pageId, page, true);});
+  updatePage(page.pageId, page, "firebase");});
 
 
 firebase.on("child_changed", function (snapshot) {
   let page = snapshot.val();
   let id = snapshot.key();
-  updatePage(id, page, true);});
+  updatePage(id, page, "firebase");});
 
 
 firebase.on("child_removed", function (snapshot) {
-  updatePage(snapshot.key(), null, true);});
+  updatePage(snapshot.key(), null, "firebase");});
 
 
 if (typeof addMessageListener !== "undefined") {
   addMessageListener("UpdatePage", function (event) {
     try {
-      updatePage(event.data.id, event.data.attrs);} 
+      updatePage(event.data.id, event.data.attrs, "addon");} 
     catch (e) {
       console.error(e, e.stack);
       throw e;}});
@@ -257,7 +315,7 @@ if (typeof addMessageListener !== "undefined") {
     try {
       for (let pageId in event.data.pages) {
         let page = event.data.pages[pageId];
-        updatePage(pageId, page);}} 
+        updatePage(pageId, page, "addon");}} 
 
     catch (e) {
       console.error(e, e.stack);
