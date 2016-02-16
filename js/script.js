@@ -1,6 +1,8 @@
+/* jshint browser:true */
+/* globals React, ReactDOM, Firebase, addMessageListener */
 "use strict";var _extends = Object.assign || function (target) {for (var i = 1; i < arguments.length; i++) {var source = arguments[i];for (var key in source) {if (Object.prototype.hasOwnProperty.call(source, key)) {target[key] = source[key];}}}return target;};
 var firebase = new Firebase('https://blistering-inferno-6839.firebaseio.com/room/test');
-
+var displayName;
 var data = { pages: {} };
 
 class PageList extends React.Component {
@@ -46,12 +48,17 @@ class Page extends React.Component {
     React.createElement("h3", null, React.createElement("a", { href: this.props.url }, this.getTitle())), 
     this.props.image ? React.createElement("img", { src: this.props.image.src, title: this.props.image.title, className: "main-image" }) : null, 
     clips, 
-    React.createElement(PageJson, { id: this.props.pageId }));}
+    React.createElement(PageJson, { id: this.props.pageId }), 
+    React.createElement("button", { onClick: this.onClickDelete.bind(this) }, React.createElement("img", { src: "./trash.svg", style: { height: "1em", width: "1em" } })));}
 
 
 
   onClickFavorite(event) {
     updatePage(this.props.pageId, { pinned: !data.pages[this.props.pageId].pinned });}
+
+
+  onClickDelete(event) {
+    updatePage(this.props.pageId, null);}
 
 
   getTitle() {
@@ -71,9 +78,13 @@ class PageJson extends React.Component {
 
   render() {
     let page = data.pages[this.props.id];
-    return React.createElement("div", { className: "page-json" }, 
-    React.createElement("button", { onClick: this.onClickExpand.bind(this) }, page.expanded ? "-" : "+"), 
-    page.expanded ? React.createElement("pre", { style: { backgroundColor: "#fff" } }, JSON.stringify(this.truncatedCopy(page), null, "  ")) : null);}
+    if (page.expanded) {
+      return React.createElement("div", null, 
+      React.createElement("button", { onClick: this.onClickExpand.bind(this) }, "hide JSON"), 
+      React.createElement("pre", { style: { backgroundColor: "#fff", fontSize: "90%" } }, JSON.stringify(this.truncatedCopy(page), null, "  ")));} else 
+
+    {
+      return React.createElement("button", { onClick: this.onClickExpand.bind(this) }, "JSON");}}
 
 
 
@@ -184,7 +195,7 @@ function render() {
 
 
 
-let displayName = localStorage.getItem("displayName");
+displayName = localStorage.getItem("displayName");
 
 
 function renderSoon() {
