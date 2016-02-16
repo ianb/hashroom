@@ -242,4 +242,15 @@ if (typeof addMessageListener !== "undefined") {
       throw e;
     }
   });
+  addMessageListener("UpdateAllPages", function (event) {
+    try {
+      for (let pageId in event.data.pages) {
+        let page = event.data.pages[pageId];
+        updatePage(pageId, page);
+      }
+    } catch (e) {
+      console.error(e, e.stack);
+      throw e;
+    }
+  });
 }

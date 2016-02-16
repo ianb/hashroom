@@ -8,6 +8,9 @@ const { prefs } = require('sdk/simple-prefs');
 Cu.import("resource://gre/modules/RemotePageManager.jsm");
 
 var ROOM_URL = prefs.server;
+if (! ROOM_URL.endsWith("/")) {
+  ROOM_URL += "/";
+}
 
 let listener = new RemotePages(ROOM_URL);
 
@@ -55,10 +58,12 @@ function clipPage(tab) {
 }
 
 listener.addMessageListener("RemotePage:Load", function ({target}) {
-  target.sendAsyncMessage("Data", data);
+  console.log("New remote page loaded");
+  target.sendAsyncMessage("UpdateAllPages", data);
 });
 
 function resync(pageId, attrs) {
+  console.log("Updating page", attrs.url || pageId);
   listener.sendAsyncMessage("UpdatePage", {id: pageId, attrs: attrs});
 }
 
@@ -66,9 +71,9 @@ function ensureRoomOpen(activate) {
   function matchUrl(url1, url2) {
     url1 = url1.replace(/\/*$/, "");
     url2 = url2.replace(/\/*$/, "");
+    return url1 == url2;
   }
   for (let tab of tabs) {
-    console.log("matching", JSON.stringify({tab: tab.url, room: ROOM_URL, match: matchUrl(tab.url, ROOM_URL)}));
     if (matchUrl(tab.url, ROOM_URL)) {
       if (activate) {
         tab.activate();
@@ -84,7 +89,7 @@ function ensureRoomOpen(activate) {
 }
 
 tabs.on("ready", function (tab) {
-  if (tab.showHashroom) {
+  if (tab.showHashroom && tabs.activeTab == tab) {
     showNotificationBar();
   }
 });
