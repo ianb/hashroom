@@ -49,11 +49,16 @@ class Page extends React.Component {
       {this.props.image ? <img src={this.props.image.src} title={this.props.image.title} className="main-image" /> : null}
       {clips}
       <PageJson id={this.props.pageId} />
+      <button onClick={this.onClickDelete.bind(this)}><img src="./trash.svg" style={{height: "1em", width: "1em"}} /></button>
     </div>;
   }
 
   onClickFavorite(event) {
     updatePage(this.props.pageId, {pinned: ! data.pages[this.props.pageId].pinned});
+  }
+
+  onClickDelete(event) {
+    updatePage(this.props.pageId, null);
   }
 
   getTitle() {
@@ -73,10 +78,14 @@ class PageJson extends React.Component {
 
   render() {
     let page = data.pages[this.props.id];
-    return <div className="page-json">
-      <button onClick={this.onClickExpand.bind(this)}>{page.expanded ? "-" : "+"}</button>
-      {page.expanded ? <pre style={{backgroundColor: "#fff"}}>{JSON.stringify(this.truncatedCopy(page), null, "  ")}</pre> : null}
-    </div>;
+    if (page.expanded) {
+      return <div>
+        <button onClick={this.onClickExpand.bind(this)}>hide JSON</button>
+        <pre style={{backgroundColor: "#fff", fontSize: "90%"}}>{JSON.stringify(this.truncatedCopy(page), null, "  ")}</pre>
+      </div>;
+    } else {
+      return <button onClick={this.onClickExpand.bind(this)}>JSON</button>;
+    }
   }
 
   truncatedCopy(obj) {
